@@ -1,3 +1,5 @@
 Django
 autopep8
 django-environ
+pytest-cov
+coverage

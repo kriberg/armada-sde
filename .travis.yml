@@ -5,12 +5,19 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+env:
+  global:
+    - DJANGO_SETTINGS_MODULE=tests.settings
+  matrix:
+    - DJANGO_VERSION=2.0.*
+    - DJANGO_VERSION=2.1.*
 install:
   - pip install -r requirements.txt
-  - pip install coveralls
+  - pip install coveralls coverage
+  - pip install -q Django==$DJANGO_VERSION
 before_script:
   - psql -c "CREATE DATABASE sde;" -U postgres
 script:
-  - py.test -v --cov armada_sde --cov-report term-missing tests --cov-config=.coveragerc-travis
+  - coverage run --rcfile=.coveragerc.travis manage.py test
 after_success:
   - coveralls

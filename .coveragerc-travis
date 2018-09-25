@@ -1,0 +1,14 @@
+[run]
+source = armada_sde
+omit =
+    armada_sde/wsgi.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+
+[html]
+directory = coverage_html_report

@@ -11,6 +11,6 @@ install:
 before_script:
   - psql -c "CREATE DATABASE sde;" -U postgres
 script:
-  - py.test -v --cov esy --cov-report term-missing tests --cov-config=.coveragerc-travis
+  - py.test -v --cov armada_sde --cov-report term-missing tests --cov-config=.coveragerc-travis
 after_success:
   - coveralls

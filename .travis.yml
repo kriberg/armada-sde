@@ -9,12 +9,12 @@ env:
   global:
     - DJANGO_SETTINGS_MODULE=tests.settings
   matrix:
-    - DJANGO_VERSION=2.0.*
-    - DJANGO_VERSION=2.1.*
+    - DJANGO_VERSION="2.0,<2.1"
+    - DJANGO_VERSION="2.1,<2.2"
 install:
   - pip install -r requirements.txt
   - pip install coveralls coverage
-  - pip install -q Django==$DJANGO_VERSION
+  - pip install -q "Django>=$DJANGO_VERSION"
 before_script:
   - psql -c "CREATE DATABASE sde;" -U postgres
 script:

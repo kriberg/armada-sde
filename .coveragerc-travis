@@ -1,7 +1,5 @@
 [run]
 source = armada_sde
-omit =
-    armada_sde/wsgi.py
 
 [report]
 exclude_lines =

@@ -24,3 +24,9 @@ DATABASES = {
 CACHES = {
     'default': env.cache(default='dummycache://'),
 }
+
+ARMADA = {
+    'SDE': {
+        'schema': 'test'
+    }
+}

@@ -15,6 +15,7 @@ from django.db import connections
 from django.utils.encoding import force_text
 from django.db.models.constants import LOOKUP_SEP
 from django.utils import timezone
+from armada_sde.settings import SDE_SCHEMA
 
 
 class Command(Inspect):
@@ -42,6 +43,10 @@ class Command(Inspect):
         super(Command, self).__init__(*args, **kwargs)
         self.table2model_mapping = {}
         self.tables_for_fix = []
+        try:
+            self.sde_schema = settings.ARMADA['SDE']['schema']
+        except (KeyError, AttributeError):
+            self.sde_schema = SDE_SCHEMA
 
     def import_database(self, dump, dbalias):  # pragma: no cover
         connection = connections[dbalias]
@@ -91,7 +96,7 @@ class Command(Inspect):
         # primary_keys = {}
         connection = connections[dbalias]
         with connection.cursor() as cursor:
-            cursor.execute('set search_path=evesde')
+            cursor.execute('SET search_path TO evesde')
             for table_name in connection.introspection.table_names(cursor):
                 _ = connection.introspection.get_constraints(cursor,
                                                              table_name)
@@ -109,7 +114,9 @@ class Command(Inspect):
 
         connection = connections[dbalias]
         with connection.cursor() as cursor:
-            cursor.execute('set search_path=evesde')
+            cursor.execute('SET search_path TO evesde;')
+            cursor.execute('CREATE SCHEMA IF NOT EXISTS {};'.format(
+                self.sde_schema))
             for name in connection.introspection.table_names(cursor):
                 if not len(name) > 1:
                     continue
@@ -153,7 +160,7 @@ class Command(Inspect):
             return s[1:] if s.startswith("u'") else s
 
         with connection.cursor() as cursor:
-            cursor.execute('SET search_path=evesde;')
+            cursor.execute('SET search_path TO evesde;')
             yield "# This is an auto-generated Django models.py file."
             yield "# It was made by armada_dev's pg_load_sde which has special"
             yield "# seasoning for importing the SDE dumps generated for " \
@@ -170,8 +177,8 @@ class Command(Inspect):
                 suitable_str = None
 
                 renamed_table_name = 'sde_{}'.format(table_name)
-                cursor.execute('DROP TABLE IF EXISTS "{}";'.format(
-                    renamed_table_name))
+                cursor.execute('DROP TABLE IF EXISTS {}."{}";'.format(
+                    self.sde_schema, renamed_table_name))
                 cursor.execute('ALTER TABLE "{}" RENAME TO "{}";'.format(
                     table_name,
                     renamed_table_name
@@ -307,22 +314,32 @@ class Command(Inspect):
                     yield meta_line
 
         with connection.cursor() as cursor:
-            self.stdout.write('Moving SDE tables to public schema...')
+            self.stdout.write('Moving SDE tables to {} schema...'.format(
+                self.sde_schema))
+            if self.sde_schema == 'evesde':
+                self.stdout.write('Skipping move as schema is set to evesde')
+                move_schema = False
+            else:
+                move_schema = True
+
             for renamed_table_name in sde_tables:
-                cursor.execute('DROP TABLE IF EXISTS public."{}";'.format(
-                    renamed_table_name
-                ))
-                self.stdout.write('Moving evesde.{0} -> public.{0}'.format(
-                    renamed_table_name))
-                cursor.execute(
-                    'ALTER TABLE evesde."{}" SET SCHEMA public'.format(
-                        renamed_table_name))
+                if move_schema:
+                    cursor.execute('DROP TABLE IF EXISTS {}."{}";'.format(
+                        self.sde_schema,
+                        renamed_table_name
+                    ))
+                    self.stdout.write('Moving evesde.{0} -> {1}.{0}'.format(
+                        renamed_table_name, self.sde_schema))
+                    cursor.execute(
+                        'ALTER TABLE evesde."{0}" SET SCHEMA {1}'.format(
+                            renamed_table_name, self.sde_schema))
 
                 if renamed_table_name in self.tables_for_fix:
-                    pk = 'ALTER TABLE public."{}" ADD COLUMN id SERIAL ' \
-                         'NOT NULL;'.format(renamed_table_name)
-                    idx = 'CREATE INDEX "{0}_id_idx" ON public."{0}" ' \
-                          'USING btree(id);'.format(renamed_table_name)
+                    pk = 'ALTER TABLE {}."{}" ADD COLUMN id SERIAL ' \
+                         'NOT NULL;'.format(self.sde_schema, renamed_table_name)
+                    idx = 'CREATE INDEX "{0}_id_idx" ON {1}."{0}" ' \
+                          'USING btree(id);'.format(renamed_table_name,
+                                                    self.sde_schema)
                     self.stdout.write('Adding non-composite primary key to '
                                       'table {}'.format(renamed_table_name))
                     cursor.execute(pk)

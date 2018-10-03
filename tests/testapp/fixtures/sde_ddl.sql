@@ -1,3 +1,4 @@
+drop schema if exists evesde cascade;
 create schema evesde;
 
 create table evesde."agtAgentTypes"

@@ -92,7 +92,7 @@ setup(
         exclude=('tests',)),
     install_requires=REQUIRED,
     include_package_data=True,
-    license='MIT',
+    license='LGPLv3',
     classifiers=[
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Development Status :: 4 - Beta',

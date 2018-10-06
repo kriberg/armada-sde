@@ -6,6 +6,8 @@ from django.conf import settings
 from armada_sde.settings import SDE_MODULE
 
 
+__all__ = []
+
 try:
     sde_module_name = settings.ARMADA['SDE']['module']
 except (KeyError, AttributeError):
@@ -23,3 +25,5 @@ for name in dir(sde_module):
     sde_class = getattr(sde_module, name)
     if inspect.isclass(sde_class) and issubclass(sde_class, models.Model):
         setattr(sys.modules[__name__], name, sde_class)
+        if not sde_class in __all__:
+            __all__.append(sde_class)

@@ -246,16 +246,23 @@ class Command(Inspect):
                     yield ''
                     yield '    def __str__(self):'
                     yield '        return self.%s' % suitable_str
+                    yield ''
+                    yield '    @staticmethod'
+                    yield '    def get_name_field():'
+                    yield '        return \'%s\'' % suitable_str
+                else:
+                    yield ''
+                    yield '    @staticmethod'
+                    yield '    def get_name_field():'
+                    yield '        return None'
                 yield ''
                 for meta_line in self.get_meta_class(renamed_table_name,
                                                      constraints,
-                                                     column_to_field_name,
-                                                     pk_column_name):
+                                                     column_to_field_name):
                     yield meta_line
 
     @staticmethod
-    def get_meta_class(table_name, constraints, column_to_field_name,
-                       pk_column_name):
+    def get_meta_class(table_name, constraints, column_to_field_name):
         """
         Return a sequence comprising the lines of code necessary
         to construct the inner Meta class for the model corresponding
@@ -282,8 +289,6 @@ class Command(Inspect):
         if unique_together:
             tup = '(' + ', '.join(unique_together) + ',)'
             meta += ["        unique_together = %s" % tup]
-        if pk_column_name is None:
-            meta += ["        compound_key = True"]
         return meta
 
     def normalize_col_name(self, col_name, used_column_names, is_relation):

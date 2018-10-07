@@ -15,7 +15,7 @@ from armada_sde import __version__
 
 # Package meta-data.
 NAME = 'armada-sde'
-DESCRIPTION = 'A pluggable Django app the EVE SDE'
+DESCRIPTION = 'A pluggable Django app for the EVE SDE'
 URL = 'https://github.com/kriberg/armada-sde.git'
 EMAIL = 'eve.vittoros@gmail.com'
 AUTHOR = 'Kristian Berg'

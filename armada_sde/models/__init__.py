@@ -5,15 +5,22 @@ from django.db import models
 from django.conf import settings
 from armada_sde.settings import SDE_MODULE
 
+try:
+    # This is a slight hack just to make autocompletion work nicely in pycharm
+    from .generated import *
+except ImportError:
+    pass
+
 
 __all__ = []
-
 try:
     sde_module_name = settings.ARMADA['SDE']['module']
 except (KeyError, AttributeError):
     sde_module_name = SDE_MODULE
 
 if __name__ in sys.modules:
+    # If we are reloading the module, we have to clear out any residual
+    # models registered. Dirty af
     for attribute in dir(sys.modules[__name__]):
         sde_class = getattr(sys.modules[__name__], attribute, None)
         if inspect.isclass(sde_class) and issubclass(sde_class,

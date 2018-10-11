@@ -64,9 +64,9 @@ class Command(BaseCommand):
         returncode = p.wait()
         if returncode != 0:
             sys.stdout.write('[FAILED]\n')
-            self.stdout.write(p.stdout.read())
+            self.stdout.write(str(p.stdout.read(), 'utf-8'))
             self.stdout.flush()
-            self.stderr.write(p.stderr.read())
+            self.stderr.write(str(p.stderr.read(), 'utf-8'))
             self.stderr.flush()
             sys.exit(returncode)
         sys.stdout.write('[DONE]\n')

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 import shlex
 import sys
+import os
 from subprocess import PIPE, Popen
 from django.conf import settings
 from django.db import connections
@@ -52,7 +53,17 @@ class Command(BaseCommand):
         if database['USER']:
             params.append('-U')
             params.append(database['USER'])
+        if database['HOST']:
+            params.append('-h')
+            params.append(database['HOST'])
+        if database['PORT']:
+            params.append('-p')
+            params.append(str(database['PORT']))
         params.append(dump)
+
+        env = os.environ.copy()
+        if database['PASSWORD']:
+            env['PGPASSWORD'] = database['PASSWORD']
 
         sys.stdout.write('Starting import of database dump...')
         sys.stdout.flush()
@@ -60,7 +71,8 @@ class Command(BaseCommand):
                   stdin=PIPE,
                   stdout=PIPE,
                   stderr=PIPE,
-                  shell=False)
+                  shell=False,
+                  env=env)
         returncode = p.wait()
         if returncode != 0:
             sys.stdout.write('[FAILED]\n')

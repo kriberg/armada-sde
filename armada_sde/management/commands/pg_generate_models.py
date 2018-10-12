@@ -70,7 +70,7 @@ TABLE_FK_OVERRIDE = {
 
 
 class Command(Inspect):
-    help = ('Generates SDE models from tables in the evesde schema.')
+    help = 'Generates SDE models from tables in the evesde schema.'
     requires_model_validation = False
     requires_system_checks = False
 
@@ -109,15 +109,20 @@ class Command(Inspect):
                         pk_columns = spec.get('columns')
                         # Tables with compound keys are not linked to, so
                         # we skip adding these.
-                        if isinstance(pk_columns, list) \
-                            and len(pk_columns) > 1:
+                        if isinstance(pk_columns, list) and \
+                                len(pk_columns) > 1:
                             continue
-                        elif isinstance(pk_columns, list) \
-                            and len(pk_columns) == 1:
+                        elif isinstance(pk_columns, list) and \
+                                len(pk_columns) == 1:
                             column_name = pk_columns[0]
                             if column_name in self.table_pk_mapping \
                                     and column_name not in FK_OVERRIDE:
-                                self.stderr.write(f'{column_name} already present! pointing to {self.table_pk_mapping[column_name]}, not adding {table_name}')
+                                self.stderr.write(
+                                    '{} already present! pointingto {}, not '
+                                    'adding {}'.format(
+                                        column_name,
+                                        self.table_pk_mapping[column_name],
+                                        table_name))
                             else:
                                 self.table_pk_mapping[column_name] = table_name
         self.table_pk_mapping.update(FK_OVERRIDE)
@@ -271,9 +276,10 @@ class Command(Inspect):
                         renamed_table_name, {}).get(column_name)
                     skip_fk = False
                     if renamed_table_name in TABLE_FK_OVERRIDE:
-                        if column_name in TABLE_FK_OVERRIDE[renamed_table_name]:
-                            if TABLE_FK_OVERRIDE[renamed_table_name][column_name] is None:
-                                skip_fk = True
+                        override = TABLE_FK_OVERRIDE[renamed_table_name]
+                        if column_name in override and \
+                                override[column_name] is None:
+                            skip_fk = True
 
                     # Add primary_key and unique, if necessary.
                     if column_name == pk_column_name:

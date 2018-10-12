@@ -1,7 +1,7 @@
 # This is an auto-generated Django models.py file.
 # It was made by armada_sde's pg_load_sde which has special
 # seasoning for importing the SDE dumps generated for postgresql.
-# Generated 2018-10-07T18:12:25.729475+00:00, version 0.2.0
+# Generated 2018-10-12T21:11:49.764818+00:00, version 0.3.0
 from __future__ import unicode_literals
 from django.db import models
 
@@ -10,7 +10,10 @@ class AgtAgentType(models.Model):
     agent_type_id = models.IntegerField(
         db_column='agentTypeID', primary_key=True)
     agent_type = models.CharField(
-        db_column='agentType', max_length=50, blank=True, null=True)
+        db_column='agentType',
+        max_length=50,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -28,16 +31,32 @@ class AgtAgentType(models.Model):
 
 class AgtAgent(models.Model):
     agent_id = models.IntegerField(db_column='agentID', primary_key=True)
-    division_id = models.IntegerField(
-        db_column='divisionID', blank=True, null=True)
-    corporation_id = models.IntegerField(
-        db_column='corporationID', blank=True, null=True)
-    location_id = models.IntegerField(
-        db_column='locationID', blank=True, null=True)
+    division = models.ForeignKey(
+        'CrpNPCDivision',
+        on_delete=models.DO_NOTHING,
+        db_column='divisionID',
+        blank=True,
+        null=True)
+    corporation = models.ForeignKey(
+        'CrpNPCCorporation',
+        on_delete=models.DO_NOTHING,
+        db_column='corporationID',
+        blank=True,
+        null=True)
+    location = models.ForeignKey(
+        'MapDenormalize',
+        on_delete=models.DO_NOTHING,
+        db_column='locationID',
+        blank=True,
+        null=True)
     level = models.IntegerField(blank=True, null=True)
     quality = models.IntegerField(blank=True, null=True)
-    agent_type_id = models.IntegerField(
-        db_column='agentTypeID', blank=True, null=True)
+    agent_type = models.ForeignKey(
+        'AgtAgentType',
+        on_delete=models.DO_NOTHING,
+        db_column='agentTypeID',
+        blank=True,
+        null=True)
     is_locator = models.NullBooleanField(db_column='isLocator')
 
     @staticmethod
@@ -56,7 +75,10 @@ class AgtAgent(models.Model):
 
 class AgtResearchAgent(models.Model):
     agent_id = models.IntegerField(db_column='agentID', primary_key=True)
-    type_id = models.IntegerField(db_column='typeID')
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID')
 
     @staticmethod
     def get_pk_field():
@@ -70,13 +92,18 @@ class AgtResearchAgent(models.Model):
         managed = False
         verbose_name = 'Agt Research Agents'
         db_table = 'sde_agtResearchAgents'
-        unique_together = (('agent_id', 'type_id'),)
+        unique_together = (('agent_id', 'type'),)
 
 
 class CertCert(models.Model):
     cert_id = models.IntegerField(db_column='certID', primary_key=True)
     description = models.TextField(blank=True, null=True)
-    group_id = models.IntegerField(db_column='groupID', blank=True, null=True)
+    group = models.ForeignKey(
+        'InvGroup',
+        on_delete=models.DO_NOTHING,
+        db_column='groupID',
+        blank=True,
+        null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
 
     @staticmethod
@@ -94,10 +121,20 @@ class CertCert(models.Model):
 
 
 class CertMastery(models.Model):
-    type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID',
+        blank=True,
+        null=True)
     mastery_level = models.IntegerField(
         db_column='masteryLevel', blank=True, null=True)
-    cert_id = models.IntegerField(db_column='certID', blank=True, null=True)
+    cert = models.ForeignKey(
+        'CertCert',
+        on_delete=models.DO_NOTHING,
+        db_column='certID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -117,14 +154,22 @@ class CertMastery(models.Model):
 
 
 class CertSkill(models.Model):
-    cert_id = models.IntegerField(db_column='certID', blank=True, null=True)
+    cert = models.ForeignKey(
+        'CertCert',
+        on_delete=models.DO_NOTHING,
+        db_column='certID',
+        blank=True,
+        null=True)
     skill_id = models.IntegerField(db_column='skillID', blank=True, null=True)
     cert_level_int = models.IntegerField(
         db_column='certLevelInt', blank=True, null=True)
     skill_level = models.IntegerField(
         db_column='skillLevel', blank=True, null=True)
     cert_level_text = models.CharField(
-        db_column='certLevelText', max_length=8, blank=True, null=True)
+        db_column='certLevelText',
+        max_length=8,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -146,9 +191,16 @@ class CertSkill(models.Model):
 class ChrAncestry(models.Model):
     ancestry_id = models.IntegerField(db_column='ancestryID', primary_key=True)
     ancestry_name = models.CharField(
-        db_column='ancestryName', max_length=100, blank=True, null=True)
-    bloodline_id = models.IntegerField(
-        db_column='bloodlineID', blank=True, null=True)
+        db_column='ancestryName',
+        max_length=100,
+        blank=True,
+        null=True)
+    bloodline = models.ForeignKey(
+        'ChrBloodline',
+        on_delete=models.DO_NOTHING,
+        db_column='bloodlineID',
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     perception = models.IntegerField(blank=True, null=True)
     willpower = models.IntegerField(blank=True, null=True)
@@ -157,7 +209,10 @@ class ChrAncestry(models.Model):
     intelligence = models.IntegerField(blank=True, null=True)
     icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
     short_description = models.CharField(
-        db_column='shortDescription', max_length=500, blank=True, null=True)
+        db_column='shortDescription',
+        max_length=500,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -180,11 +235,22 @@ class ChrAttribute(models.Model):
     attribute_id = models.IntegerField(
         db_column='attributeID', primary_key=True)
     attribute_name = models.CharField(
-        db_column='attributeName', max_length=100, blank=True, null=True)
+        db_column='attributeName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     short_description = models.CharField(
-        db_column='shortDescription', max_length=500, blank=True, null=True)
+        db_column='shortDescription',
+        max_length=500,
+        blank=True,
+        null=True)
     notes = models.CharField(max_length=500, blank=True, null=True)
 
     @staticmethod
@@ -208,29 +274,60 @@ class ChrBloodline(models.Model):
     bloodline_id = models.IntegerField(
         db_column='bloodlineID', primary_key=True)
     bloodline_name = models.CharField(
-        db_column='bloodlineName', max_length=100, blank=True, null=True)
-    race_id = models.IntegerField(db_column='raceID', blank=True, null=True)
+        db_column='bloodlineName',
+        max_length=100,
+        blank=True,
+        null=True)
+    race = models.ForeignKey(
+        'ChrRace',
+        on_delete=models.DO_NOTHING,
+        db_column='raceID',
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     male_description = models.CharField(
-        db_column='maleDescription', max_length=1000, blank=True, null=True)
+        db_column='maleDescription',
+        max_length=1000,
+        blank=True,
+        null=True)
     female_description = models.CharField(
-        db_column='femaleDescription', max_length=1000, blank=True, null=True)
+        db_column='femaleDescription',
+        max_length=1000,
+        blank=True,
+        null=True)
     ship_type_id = models.IntegerField(
         db_column='shipTypeID', blank=True, null=True)
-    corporation_id = models.IntegerField(
-        db_column='corporationID', blank=True, null=True)
+    corporation = models.ForeignKey(
+        'CrpNPCCorporation',
+        on_delete=models.DO_NOTHING,
+        db_column='corporationID',
+        blank=True,
+        null=True)
     perception = models.IntegerField(blank=True, null=True)
     willpower = models.IntegerField(blank=True, null=True)
     charisma = models.IntegerField(blank=True, null=True)
     memory = models.IntegerField(blank=True, null=True)
     intelligence = models.IntegerField(blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     short_description = models.CharField(
-        db_column='shortDescription', max_length=500, blank=True, null=True)
+        db_column='shortDescription',
+        max_length=500,
+        blank=True,
+        null=True)
     short_male_description = models.CharField(
-        db_column='shortMaleDescription', max_length=500, blank=True, null=True)
+        db_column='shortMaleDescription',
+        max_length=500,
+        blank=True,
+        null=True)
     short_female_description = models.CharField(
-        db_column='shortFemaleDescription', max_length=500, blank=True, null=True)
+        db_column='shortFemaleDescription',
+        max_length=500, blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -252,10 +349,14 @@ class ChrBloodline(models.Model):
 class ChrFaction(models.Model):
     faction_id = models.IntegerField(db_column='factionID', primary_key=True)
     faction_name = models.CharField(
-        db_column='factionName', max_length=100, blank=True, null=True)
+        db_column='factionName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     race_ids = models.IntegerField(db_column='raceIDs', blank=True, null=True)
-    solar_system_id = models.IntegerField(
+    solar_system = models.ForeignKey(
+        'MapSolarSystem', on_delete=models.DO_NOTHING,
         db_column='solarSystemID', blank=True, null=True)
     corporation_id = models.IntegerField(
         db_column='corporationID', blank=True, null=True)
@@ -267,7 +368,12 @@ class ChrFaction(models.Model):
         db_column='stationSystemCount', blank=True, null=True)
     militia_corporation_id = models.IntegerField(
         db_column='militiaCorporationID', blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -289,11 +395,22 @@ class ChrFaction(models.Model):
 class ChrRace(models.Model):
     race_id = models.IntegerField(db_column='raceID', primary_key=True)
     race_name = models.CharField(
-        db_column='raceName', max_length=100, blank=True, null=True)
+        db_column='raceName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     short_description = models.CharField(
-        db_column='shortDescription', max_length=500, blank=True, null=True)
+        db_column='shortDescription',
+        max_length=500,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -315,7 +432,10 @@ class ChrRace(models.Model):
 class CrpActivity(models.Model):
     activity_id = models.IntegerField(db_column='activityID', primary_key=True)
     activity_name = models.CharField(
-        db_column='activityName', max_length=100, blank=True, null=True)
+        db_column='activityName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
 
     @staticmethod
@@ -338,7 +458,10 @@ class CrpActivity(models.Model):
 class CrpNPCCorporationDivision(models.Model):
     corporation_id = models.IntegerField(
         db_column='corporationID', primary_key=True)
-    division_id = models.IntegerField(db_column='divisionID')
+    division = models.ForeignKey(
+        'CrpNPCDivision',
+        on_delete=models.DO_NOTHING,
+        db_column='divisionID')
     size = models.IntegerField(blank=True, null=True)
 
     @staticmethod
@@ -353,12 +476,15 @@ class CrpNPCCorporationDivision(models.Model):
         managed = False
         verbose_name = 'Crp Npccorporation Divisions'
         db_table = 'sde_crpNPCCorporationDivisions'
-        unique_together = (('corporation_id', 'division_id'),)
+        unique_together = (('corporation_id', 'division'),)
 
 
 class CrpNPCCorporationResearchField(models.Model):
     skill_id = models.IntegerField(db_column='skillID', primary_key=True)
-    corporation_id = models.IntegerField(db_column='corporationID')
+    corporation = models.ForeignKey(
+        'CrpNPCCorporation',
+        on_delete=models.DO_NOTHING,
+        db_column='corporationID')
 
     @staticmethod
     def get_pk_field():
@@ -372,13 +498,16 @@ class CrpNPCCorporationResearchField(models.Model):
         managed = False
         verbose_name = 'Crp Npccorporation Research Fields'
         db_table = 'sde_crpNPCCorporationResearchFields'
-        unique_together = (('skill_id', 'corporation_id'),)
+        unique_together = (('skill_id', 'corporation'),)
 
 
 class CrpNPCCorporationTrade(models.Model):
     corporation_id = models.IntegerField(
         db_column='corporationID', primary_key=True)
-    type_id = models.IntegerField(db_column='typeID')
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID')
 
     @staticmethod
     def get_pk_field():
@@ -392,7 +521,7 @@ class CrpNPCCorporationTrade(models.Model):
         managed = False
         verbose_name = 'Crp Npccorporation Trades'
         db_table = 'sde_crpNPCCorporationTrades'
-        unique_together = (('corporation_id', 'type_id'),)
+        unique_together = (('corporation_id', 'type'),)
 
 
 class CrpNPCCorporation(models.Model):
@@ -432,8 +561,12 @@ class CrpNPCCorporation(models.Model):
     corridor = models.IntegerField(blank=True, null=True)
     hub = models.IntegerField(blank=True, null=True)
     border = models.IntegerField(blank=True, null=True)
-    faction_id = models.IntegerField(
-        db_column='factionID', blank=True, null=True)
+    faction = models.ForeignKey(
+        'ChrFaction',
+        on_delete=models.DO_NOTHING,
+        db_column='factionID',
+        blank=True,
+        null=True)
     size_factor = models.FloatField(
         db_column='sizeFactor', blank=True, null=True)
     station_count = models.IntegerField(
@@ -441,7 +574,12 @@ class CrpNPCCorporation(models.Model):
     station_system_count = models.IntegerField(
         db_column='stationSystemCount', blank=True, null=True)
     description = models.CharField(max_length=4000, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -460,10 +598,16 @@ class CrpNPCCorporation(models.Model):
 class CrpNPCDivision(models.Model):
     division_id = models.IntegerField(db_column='divisionID', primary_key=True)
     division_name = models.CharField(
-        db_column='divisionName', max_length=100, blank=True, null=True)
+        db_column='divisionName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     leader_type = models.CharField(
-        db_column='leaderType', max_length=100, blank=True, null=True)
+        db_column='leaderType',
+        max_length=100,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -482,9 +626,15 @@ class CrpNPCDivision(models.Model):
 class DgmAttributeCategory(models.Model):
     category_id = models.IntegerField(db_column='categoryID', primary_key=True)
     category_name = models.CharField(
-        db_column='categoryName', max_length=50, blank=True, null=True)
+        db_column='categoryName',
+        max_length=50,
+        blank=True,
+        null=True)
     category_description = models.CharField(
-        db_column='categoryDescription', max_length=200, blank=True, null=True)
+        db_column='categoryDescription',
+        max_length=200,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -504,15 +654,31 @@ class DgmAttributeType(models.Model):
     attribute_id = models.IntegerField(
         db_column='attributeID', primary_key=True)
     attribute_name = models.CharField(
-        db_column='attributeName', max_length=100, blank=True, null=True)
+        db_column='attributeName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     default_value = models.FloatField(
         db_column='defaultValue', blank=True, null=True)
     published = models.NullBooleanField()
     display_name = models.CharField(
-        db_column='displayName', max_length=150, blank=True, null=True)
-    unit_id = models.IntegerField(db_column='unitID', blank=True, null=True)
+        db_column='displayName',
+        max_length=150,
+        blank=True,
+        null=True)
+    unit = models.ForeignKey(
+        'EveUnit',
+        on_delete=models.DO_NOTHING,
+        db_column='unitID',
+        blank=True,
+        null=True)
     stackable = models.NullBooleanField()
     high_is_good = models.NullBooleanField(db_column='highIsGood')
     category_id = models.IntegerField(
@@ -535,7 +701,10 @@ class DgmAttributeType(models.Model):
 class DgmEffect(models.Model):
     effect_id = models.IntegerField(db_column='effectID', primary_key=True)
     effect_name = models.CharField(
-        db_column='effectName', max_length=400, blank=True, null=True)
+        db_column='effectName',
+        max_length=400,
+        blank=True,
+        null=True)
     effect_category = models.IntegerField(
         db_column='effectCategory', blank=True, null=True)
     pre_expression = models.IntegerField(
@@ -544,7 +713,12 @@ class DgmEffect(models.Model):
         db_column='postExpression', blank=True, null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     guid = models.CharField(max_length=60, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     is_offensive = models.NullBooleanField(db_column='isOffensive')
     is_assistance = models.NullBooleanField(db_column='isAssistance')
     duration_attribute_id = models.IntegerField(
@@ -561,14 +735,20 @@ class DgmEffect(models.Model):
         db_column='disallowAutoRepeat')
     published = models.NullBooleanField()
     display_name = models.CharField(
-        db_column='displayName', max_length=100, blank=True, null=True)
+        db_column='displayName',
+        max_length=100,
+        blank=True,
+        null=True)
     is_warp_safe = models.NullBooleanField(db_column='isWarpSafe')
     range_chance = models.NullBooleanField(db_column='rangeChance')
     electronic_chance = models.NullBooleanField(db_column='electronicChance')
     propulsion_chance = models.NullBooleanField(db_column='propulsionChance')
     distribution = models.IntegerField(blank=True, null=True)
     sfx_name = models.CharField(
-        db_column='sfxName', max_length=20, blank=True, null=True)
+        db_column='sfxName',
+        max_length=20,
+        blank=True,
+        null=True)
     npc_usage_chance_attribute_id = models.IntegerField(
         db_column='npcUsageChanceAttributeID', blank=True, null=True)
     npc_activation_chance_attribute_id = models.IntegerField(
@@ -603,10 +783,16 @@ class DgmExpression(models.Model):
     arg1 = models.IntegerField(blank=True, null=True)
     arg2 = models.IntegerField(blank=True, null=True)
     expression_value = models.CharField(
-        db_column='expressionValue', max_length=100, blank=True, null=True)
+        db_column='expressionValue',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     expression_name = models.CharField(
-        db_column='expressionName', max_length=500, blank=True, null=True)
+        db_column='expressionName',
+        max_length=500,
+        blank=True,
+        null=True)
     expression_type_id = models.IntegerField(
         db_column='expressionTypeID', blank=True, null=True)
     expression_group_id = models.IntegerField(
@@ -633,7 +819,10 @@ class DgmExpression(models.Model):
 
 class DgmTypeAttribute(models.Model):
     type_id = models.IntegerField(db_column='typeID', primary_key=True)
-    attribute_id = models.IntegerField(db_column='attributeID')
+    attribute = models.ForeignKey(
+        'DgmAttributeType',
+        on_delete=models.DO_NOTHING,
+        db_column='attributeID')
     value_int = models.IntegerField(
         db_column='valueInt', blank=True, null=True)
     value_float = models.FloatField(
@@ -651,12 +840,15 @@ class DgmTypeAttribute(models.Model):
         managed = False
         verbose_name = 'Dgm Type Attributes'
         db_table = 'sde_dgmTypeAttributes'
-        unique_together = (('type_id', 'attribute_id'),)
+        unique_together = (('type_id', 'attribute'),)
 
 
 class DgmTypeEffect(models.Model):
     type_id = models.IntegerField(db_column='typeID', primary_key=True)
-    effect_id = models.IntegerField(db_column='effectID')
+    effect = models.ForeignKey(
+        'DgmEffect',
+        on_delete=models.DO_NOTHING,
+        db_column='effectID')
     is_default = models.NullBooleanField(db_column='isDefault')
 
     @staticmethod
@@ -671,19 +863,31 @@ class DgmTypeEffect(models.Model):
         managed = False
         verbose_name = 'Dgm Type Effects'
         db_table = 'sde_dgmTypeEffects'
-        unique_together = (('type_id', 'effect_id'),)
+        unique_together = (('type_id', 'effect'),)
 
 
 class EveGraphic(models.Model):
     graphic_id = models.IntegerField(db_column='graphicID', primary_key=True)
     sof_faction_name = models.CharField(
-        db_column='sofFactionName', max_length=100, blank=True, null=True)
+        db_column='sofFactionName',
+        max_length=100,
+        blank=True,
+        null=True)
     graphic_file = models.CharField(
-        db_column='graphicFile', max_length=100, blank=True, null=True)
+        db_column='graphicFile',
+        max_length=100,
+        blank=True,
+        null=True)
     sof_hull_name = models.CharField(
-        db_column='sofHullName', max_length=100, blank=True, null=True)
+        db_column='sofHullName',
+        max_length=100,
+        blank=True,
+        null=True)
     sof_race_name = models.CharField(
-        db_column='sofRaceName', max_length=100, blank=True, null=True)
+        db_column='sofRaceName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.TextField(blank=True, null=True)
 
     @staticmethod
@@ -703,7 +907,10 @@ class EveGraphic(models.Model):
 class EveIcon(models.Model):
     icon_id = models.IntegerField(db_column='iconID', primary_key=True)
     icon_file = models.CharField(
-        db_column='iconFile', max_length=500, blank=True, null=True)
+        db_column='iconFile',
+        max_length=500,
+        blank=True,
+        null=True)
     description = models.TextField(blank=True, null=True)
 
     @staticmethod
@@ -723,9 +930,15 @@ class EveIcon(models.Model):
 class EveUnit(models.Model):
     unit_id = models.IntegerField(db_column='unitID', primary_key=True)
     unit_name = models.CharField(
-        db_column='unitName', max_length=100, blank=True, null=True)
+        db_column='unitName',
+        max_length=100,
+        blank=True,
+        null=True)
     display_name = models.CharField(
-        db_column='displayName', max_length=50, blank=True, null=True)
+        db_column='displayName',
+        max_length=50,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
 
     @staticmethod
@@ -747,7 +960,10 @@ class EveUnit(models.Model):
 
 class IndustryActivity(models.Model):
     type_id = models.IntegerField(db_column='typeID', primary_key=True)
-    activity_id = models.IntegerField(db_column='activityID')
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID')
     time = models.IntegerField(blank=True, null=True)
 
     @staticmethod
@@ -762,13 +978,17 @@ class IndustryActivity(models.Model):
         managed = False
         verbose_name = 'Industry Activity'
         db_table = 'sde_industryActivity'
-        unique_together = (('type_id', 'activity_id'),)
+        unique_together = (('type_id', 'activity'),)
 
 
 class IndustryActivityMaterial(models.Model):
     type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     material_type_id = models.IntegerField(
         db_column='materialTypeID', blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
@@ -792,8 +1012,12 @@ class IndustryActivityMaterial(models.Model):
 
 class IndustryActivityProbability(models.Model):
     type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     product_type_id = models.IntegerField(
         db_column='productTypeID', blank=True, null=True)
     probability = models.DecimalField(
@@ -818,8 +1042,12 @@ class IndustryActivityProbability(models.Model):
 
 class IndustryActivityProduct(models.Model):
     type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     product_type_id = models.IntegerField(
         db_column='productTypeID', blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
@@ -842,12 +1070,26 @@ class IndustryActivityProduct(models.Model):
 
 
 class IndustryActivityRace(models.Model):
-    type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID',
+        blank=True,
+        null=True)
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     product_type_id = models.IntegerField(
         db_column='productTypeID', blank=True, null=True)
-    race_id = models.IntegerField(db_column='raceID', blank=True, null=True)
+    race = models.ForeignKey(
+        'ChrRace',
+        on_delete=models.DO_NOTHING,
+        db_column='raceID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -868,8 +1110,12 @@ class IndustryActivityRace(models.Model):
 
 class IndustryActivitySkill(models.Model):
     type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     skill_id = models.IntegerField(db_column='skillID', blank=True, null=True)
     level = models.IntegerField(blank=True, null=True)
 
@@ -912,8 +1158,16 @@ class IndustryBlueprint(models.Model):
 class InvCategory(models.Model):
     category_id = models.IntegerField(db_column='categoryID', primary_key=True)
     category_name = models.CharField(
-        db_column='categoryName', max_length=100, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+        db_column='categoryName',
+        max_length=100,
+        blank=True,
+        null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     published = models.NullBooleanField()
 
     @staticmethod
@@ -935,7 +1189,10 @@ class InvCategory(models.Model):
 
 class InvContrabandType(models.Model):
     faction_id = models.IntegerField(db_column='factionID', primary_key=True)
-    type_id = models.IntegerField(db_column='typeID')
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID')
     standing_loss = models.FloatField(
         db_column='standingLoss', blank=True, null=True)
     confiscate_min_sec = models.FloatField(
@@ -957,13 +1214,16 @@ class InvContrabandType(models.Model):
         managed = False
         verbose_name = 'Inv Contraband Types'
         db_table = 'sde_invContrabandTypes'
-        unique_together = (('faction_id', 'type_id'),)
+        unique_together = (('faction_id', 'type'),)
 
 
 class InvControlTowerResourcePurpose(models.Model):
     purpose = models.IntegerField(primary_key=True)
     purpose_text = models.CharField(
-        db_column='purposeText', max_length=100, blank=True, null=True)
+        db_column='purposeText',
+        max_length=100,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -983,12 +1243,21 @@ class InvControlTowerResource(models.Model):
     control_tower_type_id = models.IntegerField(
         db_column='controlTowerTypeID', primary_key=True)
     resource_type_id = models.IntegerField(db_column='resourceTypeID')
-    purpose = models.IntegerField(blank=True, null=True)
+    purpose = models.ForeignKey(
+        'InvControlTowerResourcePurpose',
+        on_delete=models.DO_NOTHING,
+        db_column='purpose',
+        blank=True,
+        null=True)
     quantity = models.IntegerField(blank=True, null=True)
     min_security_level = models.FloatField(
         db_column='minSecurityLevel', blank=True, null=True)
-    faction_id = models.IntegerField(
-        db_column='factionID', blank=True, null=True)
+    faction = models.ForeignKey(
+        'ChrFaction',
+        on_delete=models.DO_NOTHING,
+        db_column='factionID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1008,9 +1277,15 @@ class InvControlTowerResource(models.Model):
 class InvFlag(models.Model):
     flag_id = models.IntegerField(db_column='flagID', primary_key=True)
     flag_name = models.CharField(
-        db_column='flagName', max_length=200, blank=True, null=True)
+        db_column='flagName',
+        max_length=200,
+        blank=True,
+        null=True)
     flag_text = models.CharField(
-        db_column='flagText', max_length=100, blank=True, null=True)
+        db_column='flagText',
+        max_length=100,
+        blank=True,
+        null=True)
     order_id = models.IntegerField(db_column='orderID', blank=True, null=True)
 
     @staticmethod
@@ -1032,11 +1307,23 @@ class InvFlag(models.Model):
 
 class InvGroup(models.Model):
     group_id = models.IntegerField(db_column='groupID', primary_key=True)
-    category_id = models.IntegerField(
-        db_column='categoryID', blank=True, null=True)
+    category = models.ForeignKey(
+        'InvCategory',
+        on_delete=models.DO_NOTHING,
+        db_column='categoryID',
+        blank=True,
+        null=True)
     group_name = models.CharField(
-        db_column='groupName', max_length=100, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+        db_column='groupName',
+        max_length=100,
+        blank=True,
+        null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     use_base_price = models.NullBooleanField(db_column='useBasePrice')
     anchored = models.NullBooleanField()
     anchorable = models.NullBooleanField()
@@ -1066,7 +1353,10 @@ class InvItem(models.Model):
     type_id = models.IntegerField(db_column='typeID')
     owner_id = models.IntegerField(db_column='ownerID')
     location_id = models.IntegerField(db_column='locationID')
-    flag_id = models.IntegerField(db_column='flagID')
+    flag = models.ForeignKey(
+        'InvFlag',
+        on_delete=models.DO_NOTHING,
+        db_column='flagID')
     quantity = models.IntegerField()
 
     @staticmethod
@@ -1089,9 +1379,17 @@ class InvMarketGroup(models.Model):
     parent_group_id = models.IntegerField(
         db_column='parentGroupID', blank=True, null=True)
     market_group_name = models.CharField(
-        db_column='marketGroupName', max_length=100, blank=True, null=True)
+        db_column='marketGroupName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=3000, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     has_types = models.NullBooleanField(db_column='hasTypes')
 
     @staticmethod
@@ -1115,9 +1413,17 @@ class InvMetaGroup(models.Model):
     meta_group_id = models.IntegerField(
         db_column='metaGroupID', primary_key=True)
     meta_group_name = models.CharField(
-        db_column='metaGroupName', max_length=100, blank=True, null=True)
+        db_column='metaGroupName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1140,8 +1446,12 @@ class InvMetaType(models.Model):
     type_id = models.IntegerField(db_column='typeID', primary_key=True)
     parent_type_id = models.IntegerField(
         db_column='parentTypeID', blank=True, null=True)
-    meta_group_id = models.IntegerField(
-        db_column='metaGroupID', blank=True, null=True)
+    meta_group = models.ForeignKey(
+        'InvMetaGroup',
+        on_delete=models.DO_NOTHING,
+        db_column='metaGroupID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1200,11 +1510,21 @@ class InvPosition(models.Model):
 
 class InvTrait(models.Model):
     trait_id = models.AutoField(db_column='traitID', primary_key=True)
-    type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID',
+        blank=True,
+        null=True)
     skill_id = models.IntegerField(db_column='skillID', blank=True, null=True)
     bonus = models.FloatField(blank=True, null=True)
     bonus_text = models.TextField(db_column='bonusText', blank=True, null=True)
-    unit_id = models.IntegerField(db_column='unitID', blank=True, null=True)
+    unit = models.ForeignKey(
+        'EveUnit',
+        on_delete=models.DO_NOTHING,
+        db_column='unitID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1244,7 +1564,10 @@ class InvTypeReaction(models.Model):
     reaction_type_id = models.IntegerField(
         db_column='reactionTypeID', primary_key=True)
     input = models.BooleanField()
-    type_id = models.IntegerField(db_column='typeID')
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID')
     quantity = models.IntegerField(blank=True, null=True)
 
     @staticmethod
@@ -1259,27 +1582,50 @@ class InvTypeReaction(models.Model):
         managed = False
         verbose_name = 'Inv Type Reactions'
         db_table = 'sde_invTypeReactions'
-        unique_together = (('reaction_type_id', 'input', 'type_id'),)
+        unique_together = (('reaction_type_id', 'input', 'type'),)
 
 
 class InvType(models.Model):
     type_id = models.IntegerField(db_column='typeID', primary_key=True)
-    group_id = models.IntegerField(db_column='groupID', blank=True, null=True)
+    group = models.ForeignKey(
+        'InvGroup',
+        on_delete=models.DO_NOTHING,
+        db_column='groupID',
+        blank=True,
+        null=True)
     type_name = models.CharField(
-        db_column='typeName', max_length=100, blank=True, null=True)
+        db_column='typeName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.TextField(blank=True, null=True)
     mass = models.FloatField(blank=True, null=True)
     volume = models.FloatField(blank=True, null=True)
     capacity = models.FloatField(blank=True, null=True)
     portion_size = models.IntegerField(
         db_column='portionSize', blank=True, null=True)
-    race_id = models.IntegerField(db_column='raceID', blank=True, null=True)
+    race = models.ForeignKey(
+        'ChrRace',
+        on_delete=models.DO_NOTHING,
+        db_column='raceID',
+        blank=True,
+        null=True)
     base_price = models.DecimalField(
-        db_column='basePrice', max_digits=19, decimal_places=4, blank=True, null=True)
+        db_column='basePrice',
+        max_digits=19,
+        decimal_places=4,
+        blank=True,
+        null=True)
     published = models.NullBooleanField()
-    market_group_id = models.IntegerField(
+    market_group = models.ForeignKey(
+        'InvMarketGroup', on_delete=models.DO_NOTHING,
         db_column='marketGroupID', blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
     sound_id = models.IntegerField(db_column='soundID', blank=True, null=True)
     graphic_id = models.IntegerField(
         db_column='graphicID', blank=True, null=True)
@@ -1304,7 +1650,12 @@ class InvType(models.Model):
 class InvUniqueName(models.Model):
     item_id = models.IntegerField(db_column='itemID', primary_key=True)
     item_name = models.CharField(db_column='itemName', max_length=200)
-    group_id = models.IntegerField(db_column='groupID', blank=True, null=True)
+    group = models.ForeignKey(
+        'InvGroup',
+        on_delete=models.DO_NOTHING,
+        db_column='groupID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1344,7 +1695,10 @@ class MapCelestialStatistic(models.Model):
         db_column='celestialID', primary_key=True)
     temperature = models.FloatField(blank=True, null=True)
     spectral_class = models.CharField(
-        db_column='spectralClass', max_length=10, blank=True, null=True)
+        db_column='spectralClass',
+        max_length=10,
+        blank=True,
+        null=True)
     luminosity = models.FloatField(blank=True, null=True)
     age = models.FloatField(blank=True, null=True)
     life = models.FloatField(blank=True, null=True)
@@ -1407,12 +1761,19 @@ class MapConstellationJump(models.Model):
 
 
 class MapConstellation(models.Model):
-    region_id = models.IntegerField(
-        db_column='regionID', blank=True, null=True)
+    region = models.ForeignKey(
+        'MapRegion',
+        on_delete=models.DO_NOTHING,
+        db_column='regionID',
+        blank=True,
+        null=True)
     constellation_id = models.IntegerField(
         db_column='constellationID', primary_key=True)
     constellation_name = models.CharField(
-        db_column='constellationName', max_length=100, blank=True, null=True)
+        db_column='constellationName',
+        max_length=100,
+        blank=True,
+        null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
@@ -1422,8 +1783,12 @@ class MapConstellation(models.Model):
     y_max = models.FloatField(db_column='yMax', blank=True, null=True)
     z_min = models.FloatField(db_column='zMin', blank=True, null=True)
     z_max = models.FloatField(db_column='zMax', blank=True, null=True)
-    faction_id = models.IntegerField(
-        db_column='factionID', blank=True, null=True)
+    faction = models.ForeignKey(
+        'ChrFaction',
+        on_delete=models.DO_NOTHING,
+        db_column='factionID',
+        blank=True,
+        null=True)
     radius = models.FloatField(blank=True, null=True)
 
     @staticmethod
@@ -1445,21 +1810,40 @@ class MapConstellation(models.Model):
 
 class MapDenormalize(models.Model):
     item_id = models.IntegerField(db_column='itemID', primary_key=True)
-    type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
-    group_id = models.IntegerField(db_column='groupID', blank=True, null=True)
-    solar_system_id = models.IntegerField(
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID',
+        blank=True,
+        null=True)
+    group = models.ForeignKey(
+        'InvGroup',
+        on_delete=models.DO_NOTHING,
+        db_column='groupID',
+        blank=True,
+        null=True)
+    solar_system = models.ForeignKey(
+        'MapSolarSystem', on_delete=models.DO_NOTHING,
         db_column='solarSystemID', blank=True, null=True)
-    constellation_id = models.IntegerField(
+    constellation = models.ForeignKey(
+        'MapConstellation', on_delete=models.DO_NOTHING,
         db_column='constellationID', blank=True, null=True)
-    region_id = models.IntegerField(
-        db_column='regionID', blank=True, null=True)
+    region = models.ForeignKey(
+        'MapRegion',
+        on_delete=models.DO_NOTHING,
+        db_column='regionID',
+        blank=True,
+        null=True)
     orbit_id = models.IntegerField(db_column='orbitID', blank=True, null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
     radius = models.FloatField(blank=True, null=True)
     item_name = models.CharField(
-        db_column='itemName', max_length=100, blank=True, null=True)
+        db_column='itemName',
+        max_length=100,
+        blank=True,
+        null=True)
     security = models.FloatField(blank=True, null=True)
     celestial_index = models.IntegerField(
         db_column='celestialIndex', blank=True, null=True)
@@ -1502,14 +1886,26 @@ class MapJump(models.Model):
 class MapLandmark(models.Model):
     landmark_id = models.IntegerField(db_column='landmarkID', primary_key=True)
     landmark_name = models.CharField(
-        db_column='landmarkName', max_length=100, blank=True, null=True)
+        db_column='landmarkName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.TextField(blank=True, null=True)
-    location_id = models.IntegerField(
-        db_column='locationID', blank=True, null=True)
+    location = models.ForeignKey(
+        'MapDenormalize',
+        on_delete=models.DO_NOTHING,
+        db_column='locationID',
+        blank=True,
+        null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
-    icon_id = models.IntegerField(db_column='iconID', blank=True, null=True)
+    icon = models.ForeignKey(
+        'EveIcon',
+        on_delete=models.DO_NOTHING,
+        db_column='iconID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1530,8 +1926,12 @@ class MapLandmark(models.Model):
 
 class MapLocationScene(models.Model):
     location_id = models.IntegerField(db_column='locationID', primary_key=True)
-    graphic_id = models.IntegerField(
-        db_column='graphicID', blank=True, null=True)
+    graphic = models.ForeignKey(
+        'EveGraphic',
+        on_delete=models.DO_NOTHING,
+        db_column='graphicID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1589,7 +1989,10 @@ class MapRegionJump(models.Model):
 class MapRegion(models.Model):
     region_id = models.IntegerField(db_column='regionID', primary_key=True)
     region_name = models.CharField(
-        db_column='regionName', max_length=100, blank=True, null=True)
+        db_column='regionName',
+        max_length=100,
+        blank=True,
+        null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
@@ -1599,8 +2002,12 @@ class MapRegion(models.Model):
     y_max = models.FloatField(db_column='yMax', blank=True, null=True)
     z_min = models.FloatField(db_column='zMin', blank=True, null=True)
     z_max = models.FloatField(db_column='zMax', blank=True, null=True)
-    faction_id = models.IntegerField(
-        db_column='factionID', blank=True, null=True)
+    faction = models.ForeignKey(
+        'ChrFaction',
+        on_delete=models.DO_NOTHING,
+        db_column='factionID',
+        blank=True,
+        null=True)
     radius = models.FloatField(blank=True, null=True)
 
     @staticmethod
@@ -1649,14 +2056,22 @@ class MapSolarSystemJump(models.Model):
 
 
 class MapSolarSystem(models.Model):
-    region_id = models.IntegerField(
-        db_column='regionID', blank=True, null=True)
-    constellation_id = models.IntegerField(
+    region = models.ForeignKey(
+        'MapRegion',
+        on_delete=models.DO_NOTHING,
+        db_column='regionID',
+        blank=True,
+        null=True)
+    constellation = models.ForeignKey(
+        'MapConstellation', on_delete=models.DO_NOTHING,
         db_column='constellationID', blank=True, null=True)
     solar_system_id = models.IntegerField(
         db_column='solarSystemID', primary_key=True)
     solar_system_name = models.CharField(
-        db_column='solarSystemName', max_length=100, blank=True, null=True)
+        db_column='solarSystemName',
+        max_length=100,
+        blank=True,
+        null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
@@ -1673,15 +2088,23 @@ class MapSolarSystem(models.Model):
     hub = models.NullBooleanField()
     international = models.NullBooleanField()
     regional = models.NullBooleanField()
-    constellation = models.NullBooleanField()
+    # Field renamed because of name conflict.
+    constellation_0 = models.NullBooleanField(db_column='constellation')
     security = models.FloatField(blank=True, null=True)
-    faction_id = models.IntegerField(
-        db_column='factionID', blank=True, null=True)
+    faction = models.ForeignKey(
+        'ChrFaction',
+        on_delete=models.DO_NOTHING,
+        db_column='factionID',
+        blank=True,
+        null=True)
     radius = models.FloatField(blank=True, null=True)
     sun_type_id = models.IntegerField(
         db_column='sunTypeID', blank=True, null=True)
     security_class = models.CharField(
-        db_column='securityClass', max_length=2, blank=True, null=True)
+        db_column='securityClass',
+        max_length=2,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1703,7 +2126,10 @@ class MapSolarSystem(models.Model):
 class MapUniverse(models.Model):
     universe_id = models.IntegerField(db_column='universeID', primary_key=True)
     universe_name = models.CharField(
-        db_column='universeName', max_length=100, blank=True, null=True)
+        db_column='universeName',
+        max_length=100,
+        blank=True,
+        null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
@@ -1736,7 +2162,10 @@ class PlanetSchematic(models.Model):
     schematic_id = models.IntegerField(
         db_column='schematicID', primary_key=True)
     schematic_name = models.CharField(
-        db_column='schematicName', max_length=255, blank=True, null=True)
+        db_column='schematicName',
+        max_length=255,
+        blank=True,
+        null=True)
     cycle_time = models.IntegerField(
         db_column='cycleTime', blank=True, null=True)
 
@@ -1777,7 +2206,10 @@ class PlanetSchematicsPinMap(models.Model):
 class PlanetSchematicsTypeMap(models.Model):
     schematic_id = models.IntegerField(
         db_column='schematicID', primary_key=True)
-    type_id = models.IntegerField(db_column='typeID')
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID')
     quantity = models.IntegerField(blank=True, null=True)
     is_input = models.NullBooleanField(db_column='isInput')
 
@@ -1793,15 +2225,21 @@ class PlanetSchematicsTypeMap(models.Model):
         managed = False
         verbose_name = 'Planet Schematics Type Map'
         db_table = 'sde_planetSchematicsTypeMap'
-        unique_together = (('schematic_id', 'type_id'),)
+        unique_together = (('schematic_id', 'type'),)
 
 
 class RamActivity(models.Model):
     activity_id = models.IntegerField(db_column='activityID', primary_key=True)
     activity_name = models.CharField(
-        db_column='activityName', max_length=100, blank=True, null=True)
+        db_column='activityName',
+        max_length=100,
+        blank=True,
+        null=True)
     icon_no = models.CharField(
-        db_column='iconNo', max_length=5, blank=True, null=True)
+        db_column='iconNo',
+        max_length=5,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     published = models.NullBooleanField()
 
@@ -1824,15 +2262,24 @@ class RamActivity(models.Model):
 
 class RamAssemblyLineStation(models.Model):
     station_id = models.IntegerField(db_column='stationID', primary_key=True)
-    assembly_line_type_id = models.IntegerField(db_column='assemblyLineTypeID')
+    assembly_line_type = models.ForeignKey(
+        'RamAssemblyLineType',
+        on_delete=models.DO_NOTHING,
+        db_column='assemblyLineTypeID')
     quantity = models.IntegerField(blank=True, null=True)
-    station_type_id = models.IntegerField(
+    station_type = models.ForeignKey(
+        'StaStationType', on_delete=models.DO_NOTHING,
         db_column='stationTypeID', blank=True, null=True)
     owner_id = models.IntegerField(db_column='ownerID', blank=True, null=True)
-    solar_system_id = models.IntegerField(
+    solar_system = models.ForeignKey(
+        'MapSolarSystem', on_delete=models.DO_NOTHING,
         db_column='solarSystemID', blank=True, null=True)
-    region_id = models.IntegerField(
-        db_column='regionID', blank=True, null=True)
+    region = models.ForeignKey(
+        'MapRegion',
+        on_delete=models.DO_NOTHING,
+        db_column='regionID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -1846,13 +2293,16 @@ class RamAssemblyLineStation(models.Model):
         managed = False
         verbose_name = 'Ram Assembly Line Stations'
         db_table = 'sde_ramAssemblyLineStations'
-        unique_together = (('station_id', 'assembly_line_type_id'),)
+        unique_together = (('station_id', 'assembly_line_type'),)
 
 
 class RamAssemblyLineTypeDetailPerCategory(models.Model):
     assembly_line_type_id = models.IntegerField(
         db_column='assemblyLineTypeID', primary_key=True)
-    category_id = models.IntegerField(db_column='categoryID')
+    category = models.ForeignKey(
+        'InvCategory',
+        on_delete=models.DO_NOTHING,
+        db_column='categoryID')
     time_multiplier = models.FloatField(
         db_column='timeMultiplier', blank=True, null=True)
     material_multiplier = models.FloatField(
@@ -1872,13 +2322,16 @@ class RamAssemblyLineTypeDetailPerCategory(models.Model):
         managed = False
         verbose_name = 'Ram Assembly Line Type Detail Per Category'
         db_table = 'sde_ramAssemblyLineTypeDetailPerCategory'
-        unique_together = (('assembly_line_type_id', 'category_id'),)
+        unique_together = (('assembly_line_type_id', 'category'),)
 
 
 class RamAssemblyLineTypeDetailPerGroup(models.Model):
     assembly_line_type_id = models.IntegerField(
         db_column='assemblyLineTypeID', primary_key=True)
-    group_id = models.IntegerField(db_column='groupID')
+    group = models.ForeignKey(
+        'InvGroup',
+        on_delete=models.DO_NOTHING,
+        db_column='groupID')
     time_multiplier = models.FloatField(
         db_column='timeMultiplier', blank=True, null=True)
     material_multiplier = models.FloatField(
@@ -1898,14 +2351,16 @@ class RamAssemblyLineTypeDetailPerGroup(models.Model):
         managed = False
         verbose_name = 'Ram Assembly Line Type Detail Per Group'
         db_table = 'sde_ramAssemblyLineTypeDetailPerGroup'
-        unique_together = (('assembly_line_type_id', 'group_id'),)
+        unique_together = (('assembly_line_type_id', 'group'),)
 
 
 class RamAssemblyLineType(models.Model):
     assembly_line_type_id = models.IntegerField(
         db_column='assemblyLineTypeID', primary_key=True)
     assembly_line_type_name = models.CharField(
-        db_column='assemblyLineTypeName', max_length=100, blank=True, null=True)
+        db_column='assemblyLineTypeName',
+        max_length=100, blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     base_time_multiplier = models.FloatField(
         db_column='baseTimeMultiplier', blank=True, null=True)
@@ -1914,8 +2369,12 @@ class RamAssemblyLineType(models.Model):
     base_cost_multiplier = models.FloatField(
         db_column='baseCostMultiplier', blank=True, null=True)
     volume = models.FloatField(blank=True, null=True)
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    activity = models.ForeignKey(
+        'RamActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     min_cost_per_hour = models.FloatField(
         db_column='minCostPerHour', blank=True, null=True)
 
@@ -1939,7 +2398,10 @@ class RamAssemblyLineType(models.Model):
 class RamInstallationTypeContent(models.Model):
     installation_type_id = models.IntegerField(
         db_column='installationTypeID', primary_key=True)
-    assembly_line_type_id = models.IntegerField(db_column='assemblyLineTypeID')
+    assembly_line_type = models.ForeignKey(
+        'RamAssemblyLineType',
+        on_delete=models.DO_NOTHING,
+        db_column='assemblyLineTypeID')
     quantity = models.IntegerField(blank=True, null=True)
 
     @staticmethod
@@ -1954,14 +2416,19 @@ class RamInstallationTypeContent(models.Model):
         managed = False
         verbose_name = 'Ram Installation Type Contents'
         db_table = 'sde_ramInstallationTypeContents'
-        unique_together = (('installation_type_id', 'assembly_line_type_id'),)
+        unique_together = (('installation_type_id', 'assembly_line_type'),)
 
 
 class SkinLicense(models.Model):
     license_type_id = models.IntegerField(
         db_column='licenseTypeID', primary_key=True)
     duration = models.IntegerField(blank=True, null=True)
-    skin_id = models.IntegerField(db_column='skinID', blank=True, null=True)
+    skin = models.ForeignKey(
+        'Skin',
+        on_delete=models.DO_NOTHING,
+        db_column='skinID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -2000,8 +2467,18 @@ class SkinMaterial(models.Model):
 
 
 class SkinShip(models.Model):
-    skin_id = models.IntegerField(db_column='skinID', blank=True, null=True)
-    type_id = models.IntegerField(db_column='typeID', blank=True, null=True)
+    skin = models.ForeignKey(
+        'Skin',
+        on_delete=models.DO_NOTHING,
+        db_column='skinID',
+        blank=True,
+        null=True)
+    type = models.ForeignKey(
+        'InvType',
+        on_delete=models.DO_NOTHING,
+        db_column='typeID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -2023,8 +2500,12 @@ class SkinShip(models.Model):
 class Skin(models.Model):
     skin_id = models.IntegerField(db_column='skinID', primary_key=True)
     internal_name = models.CharField(
-        db_column='internalName', max_length=70, blank=True, null=True)
-    skin_material_id = models.IntegerField(
+        db_column='internalName',
+        max_length=70,
+        blank=True,
+        null=True)
+    skin_material = models.ForeignKey(
+        'SkinMaterial', on_delete=models.DO_NOTHING,
         db_column='skinMaterialID', blank=True, null=True)
 
     @staticmethod
@@ -2044,7 +2525,10 @@ class Skin(models.Model):
 class StaOperationService(models.Model):
     operation_id = models.IntegerField(
         db_column='operationID', primary_key=True)
-    service_id = models.IntegerField(db_column='serviceID')
+    service = models.ForeignKey(
+        'StaService',
+        on_delete=models.DO_NOTHING,
+        db_column='serviceID')
 
     @staticmethod
     def get_pk_field():
@@ -2058,16 +2542,23 @@ class StaOperationService(models.Model):
         managed = False
         verbose_name = 'Sta Operation Services'
         db_table = 'sde_staOperationServices'
-        unique_together = (('operation_id', 'service_id'),)
+        unique_together = (('operation_id', 'service'),)
 
 
 class StaOperation(models.Model):
-    activity_id = models.IntegerField(
-        db_column='activityID', blank=True, null=True)
+    activity = models.ForeignKey(
+        'CrpActivity',
+        on_delete=models.DO_NOTHING,
+        db_column='activityID',
+        blank=True,
+        null=True)
     operation_id = models.IntegerField(
         db_column='operationID', primary_key=True)
     operation_name = models.CharField(
-        db_column='operationName', max_length=100, blank=True, null=True)
+        db_column='operationName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
     fringe = models.IntegerField(blank=True, null=True)
     corridor = models.IntegerField(blank=True, null=True)
@@ -2105,7 +2596,10 @@ class StaOperation(models.Model):
 class StaService(models.Model):
     service_id = models.IntegerField(db_column='serviceID', primary_key=True)
     service_name = models.CharField(
-        db_column='serviceName', max_length=100, blank=True, null=True)
+        db_column='serviceName',
+        max_length=100,
+        blank=True,
+        null=True)
     description = models.CharField(max_length=1000, blank=True, null=True)
 
     @staticmethod
@@ -2140,8 +2634,12 @@ class StaStationType(models.Model):
         db_column='dockOrientationY', blank=True, null=True)
     dock_orientation_z = models.FloatField(
         db_column='dockOrientationZ', blank=True, null=True)
-    operation_id = models.IntegerField(
-        db_column='operationID', blank=True, null=True)
+    operation = models.ForeignKey(
+        'StaOperation',
+        on_delete=models.DO_NOTHING,
+        db_column='operationID',
+        blank=True,
+        null=True)
     office_slots = models.IntegerField(
         db_column='officeSlots', blank=True, null=True)
     reprocessing_efficiency = models.FloatField(
@@ -2172,20 +2670,38 @@ class StaStation(models.Model):
         db_column='maxShipVolumeDockable', blank=True, null=True)
     office_rental_cost = models.IntegerField(
         db_column='officeRentalCost', blank=True, null=True)
-    operation_id = models.IntegerField(
-        db_column='operationID', blank=True, null=True)
-    station_type_id = models.IntegerField(
+    operation = models.ForeignKey(
+        'StaOperation',
+        on_delete=models.DO_NOTHING,
+        db_column='operationID',
+        blank=True,
+        null=True)
+    station_type = models.ForeignKey(
+        'StaStationType', on_delete=models.DO_NOTHING,
         db_column='stationTypeID', blank=True, null=True)
-    corporation_id = models.IntegerField(
-        db_column='corporationID', blank=True, null=True)
-    solar_system_id = models.IntegerField(
+    corporation = models.ForeignKey(
+        'CrpNPCCorporation',
+        on_delete=models.DO_NOTHING,
+        db_column='corporationID',
+        blank=True,
+        null=True)
+    solar_system = models.ForeignKey(
+        'MapSolarSystem', on_delete=models.DO_NOTHING,
         db_column='solarSystemID', blank=True, null=True)
-    constellation_id = models.IntegerField(
+    constellation = models.ForeignKey(
+        'MapConstellation', on_delete=models.DO_NOTHING,
         db_column='constellationID', blank=True, null=True)
-    region_id = models.IntegerField(
-        db_column='regionID', blank=True, null=True)
+    region = models.ForeignKey(
+        'MapRegion',
+        on_delete=models.DO_NOTHING,
+        db_column='regionID',
+        blank=True,
+        null=True)
     station_name = models.CharField(
-        db_column='stationName', max_length=100, blank=True, null=True)
+        db_column='stationName',
+        max_length=100,
+        blank=True,
+        null=True)
     x = models.FloatField(blank=True, null=True)
     y = models.FloatField(blank=True, null=True)
     z = models.FloatField(blank=True, null=True)
@@ -2215,14 +2731,24 @@ class StaStation(models.Model):
 
 class TranslationTable(models.Model):
     source_table = models.CharField(
-        db_column='sourceTable', primary_key=True, max_length=200)
+        db_column='sourceTable',
+        primary_key=True,
+        max_length=200)
     destination_table = models.CharField(
-        db_column='destinationTable', max_length=200, blank=True, null=True)
+        db_column='destinationTable',
+        max_length=200,
+        blank=True,
+        null=True)
     translated_key = models.CharField(
         db_column='translatedKey', max_length=200)
     tc_group_id = models.IntegerField(
         db_column='tcGroupID', blank=True, null=True)
-    tc_id = models.IntegerField(db_column='tcID', blank=True, null=True)
+    tc = models.ForeignKey(
+        'TrnTranslationColumn',
+        on_delete=models.DO_NOTHING,
+        db_column='tcID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -2246,7 +2772,10 @@ class TrnTranslationColumn(models.Model):
     table_name = models.CharField(db_column='tableName', max_length=256)
     column_name = models.CharField(db_column='columnName', max_length=128)
     master_id = models.CharField(
-        db_column='masterID', max_length=128, blank=True, null=True)
+        db_column='masterID',
+        max_length=128,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -2266,9 +2795,15 @@ class TrnTranslationLanguage(models.Model):
     numeric_language_id = models.IntegerField(
         db_column='numericLanguageID', primary_key=True)
     language_id = models.CharField(
-        db_column='languageID', max_length=50, blank=True, null=True)
+        db_column='languageID',
+        max_length=50,
+        blank=True,
+        null=True)
     language_name = models.CharField(
-        db_column='languageName', max_length=200, blank=True, null=True)
+        db_column='languageName',
+        max_length=200,
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -2308,8 +2843,12 @@ class TrnTranslation(models.Model):
 class WarCombatZoneSystem(models.Model):
     solar_system_id = models.IntegerField(
         db_column='solarSystemID', primary_key=True)
-    combat_zone_id = models.IntegerField(
-        db_column='combatZoneID', blank=True, null=True)
+    combat_zone = models.ForeignKey(
+        'WarCombatZone',
+        on_delete=models.DO_NOTHING,
+        db_column='combatZoneID',
+        blank=True,
+        null=True)
 
     @staticmethod
     def get_pk_field():
@@ -2329,9 +2868,16 @@ class WarCombatZone(models.Model):
     combat_zone_id = models.IntegerField(
         db_column='combatZoneID', primary_key=True)
     combat_zone_name = models.CharField(
-        db_column='combatZoneName', max_length=100, blank=True, null=True)
-    faction_id = models.IntegerField(
-        db_column='factionID', blank=True, null=True)
+        db_column='combatZoneName',
+        max_length=100,
+        blank=True,
+        null=True)
+    faction = models.ForeignKey(
+        'ChrFaction',
+        on_delete=models.DO_NOTHING,
+        db_column='factionID',
+        blank=True,
+        null=True)
     center_system_id = models.IntegerField(
         db_column='centerSystemID', blank=True, null=True)
     description = models.CharField(max_length=500, blank=True, null=True)

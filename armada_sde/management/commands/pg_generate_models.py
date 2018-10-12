@@ -17,6 +17,58 @@ from armada_sde.settings import SDE_SCHEMA
 from armada_sde import __version__
 
 
+FK_OVERRIDE = {
+    'typeID': 'sde_invTypes',
+    'solarSystemID': 'sde_mapSolarSystems',
+    'categoryID': 'sde_invCategories',
+    'itemID': 'sde_invItems',
+    'locationID': 'sde_mapDenormalize',
+    'attributeID': 'sde_dgmAttributeTypes',
+    'activityID': 'sde_ramActivities',
+}
+
+# There are some tables which have colliding FK names to other tables
+# We override those here. Setting it to None will skip creating FK and not
+# define the model field as ForeignKey.
+# Using a tuple, will override the target table for this specific source table
+TABLE_FK_OVERRIDE = {
+    'sde_chrAncestries': {
+        'iconID': None
+    },
+    'sde_invTypes': {
+        'graphicID': None
+    },
+    'sde_crpNPCCorporations': {
+        'solarSystemID': None
+    },
+    'sde_dgmAttributeTypes': {
+        'categoryID': None,
+    },
+    'sde_industryActivityMaterials': {
+        'typeID': None
+    },
+    'sde_industryActivityProbabilities': {
+        'typeID': None
+    },
+    'sde_industryActivitySkills': {
+        'typeID': None
+    },
+    'sde_industryActivityProducts': {
+        'typeID': None,
+    },
+    'sde_invItems': {
+        'typeID': None,
+        'locationID': None,
+    },
+    'sde_staOperations': {
+        'activityID': ('sde_crpActivities', 'activityID')
+    },
+    'sde_chrFactions': {
+        'corporationID': None,
+    }
+}
+
+
 class Command(Inspect):
     help = ('Generates SDE models from tables in the evesde schema.')
     requires_model_validation = False
@@ -37,27 +89,66 @@ class Command(Inspect):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self.table2model_mapping = {}
+        self.table_pk_mapping = {}
+        self.foreign_keys = []
         try:
             self.sde_schema = settings.ARMADA['SDE']['schema']
         except (KeyError, AttributeError):
             self.sde_schema = SDE_SCHEMA
 
-    @staticmethod
-    def generate_foreign_keys(dbalias):
-        # primary_keys = {}
+    def generate_pk_mapping(self, dbalias):
         connection = connections[dbalias]
+
         with connection.cursor() as cursor:
             cursor.execute('SET search_path TO evesde')
             for table_name in connection.introspection.table_names(cursor):
-                _ = connection.introspection.get_constraints(cursor,
-                                                             table_name)
+                constraints = connection.introspection.get_constraints(
+                    cursor, table_name)
+                for name, spec in constraints.items():
+                    if spec.get('primary_key'):
+                        pk_columns = spec.get('columns')
+                        # Tables with compound keys are not linked to, so
+                        # we skip adding these.
+                        if isinstance(pk_columns, list) \
+                            and len(pk_columns) > 1:
+                            continue
+                        elif isinstance(pk_columns, list) \
+                            and len(pk_columns) == 1:
+                            column_name = pk_columns[0]
+                            if column_name in self.table_pk_mapping \
+                                    and column_name not in FK_OVERRIDE:
+                                self.stderr.write(f'{column_name} already present! pointing to {self.table_pk_mapping[column_name]}, not adding {table_name}')
+                            else:
+                                self.table_pk_mapping[column_name] = table_name
+        self.table_pk_mapping.update(FK_OVERRIDE)
+
+    def generate_foreign_keys(self, dbalias):
+        connection = connections[dbalias]
+        ispect = connection.introspection
+        with connection.cursor() as cursor:
+            cursor.execute('SET search_path TO evesde')
+            for source, target, column_name in self.foreign_keys:
+                target_pk = ispect.get_primary_key_column(cursor, target)
+                sql = '''ALTER TABLE evesde."{0}" 
+                DROP CONSTRAINT IF EXISTS "{0}_{1}_fkey",
+                ADD CONSTRAINT "{0}_{1}_fkey" 
+                    FOREIGN KEY ("{2}") 
+                    REFERENCES evesde."{1}" ("{3}") 
+                    DEFERRABLE INITIALLY DEFERRED;'''.format(source,
+                                                             target,
+                                                             column_name,
+                                                             target_pk)
+                try:
+                    cursor.execute(sql)
+                except Exception as ex:
+                    self.stdout.write('Skipping ' + sql + '\n' + str(ex))
 
     def handle(self, *args, **options):
         dbalias = options['database']
         output_filename = options.get('output')
         model_lines = []
 
-        self.generate_foreign_keys(dbalias)
+        self.generate_pk_mapping(dbalias)
 
         connection = connections[dbalias]
         with connection.cursor() as cursor:
@@ -71,7 +162,13 @@ class Command(Inspect):
             for line in self.handle_inspection(dbalias):
                 model_lines.append(line)
 
-        model_code = autopep8.fix_code('\n'.join(model_lines))
+        self.generate_foreign_keys(dbalias)
+
+        model_code = autopep8.fix_code('\n'.join(model_lines),
+                                       options={
+                                           'aggressive': 2,
+                                           'experimental': True
+                                       })
         try:
             ast.parse(model_code)
             if output_filename == '-':
@@ -170,22 +267,38 @@ class Command(Inspect):
                     used_column_names.append(att_name)
                     column_to_field_name[column_name] = att_name
 
+                    fk_override = TABLE_FK_OVERRIDE.get(
+                        renamed_table_name, {}).get(column_name)
+                    skip_fk = False
+                    if renamed_table_name in TABLE_FK_OVERRIDE:
+                        if column_name in TABLE_FK_OVERRIDE[renamed_table_name]:
+                            if TABLE_FK_OVERRIDE[renamed_table_name][column_name] is None:
+                                skip_fk = True
+
                     # Add primary_key and unique, if necessary.
                     if column_name == pk_column_name:
                         extra_params['primary_key'] = True
                     elif column_name in unique_columns:
                         extra_params['unique'] = True
 
-                    if is_relation:
-                        rel_to = (
-                            "self" if relations[column_name][
-                                          1] == renamed_table_name
-                            else self.table2model(relations[column_name][1])
-                        )
-                        if rel_to in known_models:
-                            field_type = 'ForeignKey(%s' % rel_to
+                    if column_name in self.table_pk_mapping and \
+                        column_name != pk_column_name and \
+                            not skip_fk:
+                        # This where we put on our placement hat and try our
+                        # best to generate foreign keys
+                        if fk_override:
+                            target_table = fk_override[0]
                         else:
-                            field_type = "ForeignKey('%s'" % rel_to
+                            target_table = self.table_pk_mapping[column_name]
+
+                        target_model = self.table2model_mapping[target_table]
+                        if att_name.endswith('_id'):
+                            att_name = att_name[:-3]
+                            column_to_field_name[column_name] = att_name
+                        field_type = "ForeignKey('%s'" % target_model
+                        self.foreign_keys.append(
+                            (renamed_table_name, target_table, column_name)
+                        )
                     else:
                         # Calling `get_field_type` to get the field type string
                         # and any additional parameters and notes.
@@ -224,7 +337,7 @@ class Command(Inspect):
                         field_type,
                     )
                     if field_type.startswith('ForeignKey('):
-                        field_desc += ', models.DO_NOTHING'
+                        field_desc += ', on_delete=models.DO_NOTHING'
 
                     if extra_params:
                         if not field_desc.endswith('('):

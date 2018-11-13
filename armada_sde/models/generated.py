@@ -1,7 +1,7 @@
 # This is an auto-generated Django models.py file.
 # It was made by armada_sde's pg_load_sde which has special
 # seasoning for importing the SDE dumps generated for postgresql.
-# Generated 2018-10-12T21:11:49.764818+00:00, version 0.3.0
+# Generated 2018-11-13T21:57:34.160884+00:00, version 0.3.0
 from __future__ import unicode_literals
 from django.db import models
 
@@ -1246,7 +1246,6 @@ class InvControlTowerResource(models.Model):
     purpose = models.ForeignKey(
         'InvControlTowerResourcePurpose',
         on_delete=models.DO_NOTHING,
-        db_column='purpose',
         blank=True,
         null=True)
     quantity = models.IntegerField(blank=True, null=True)
@@ -1649,7 +1648,10 @@ class InvType(models.Model):
 
 class InvUniqueName(models.Model):
     item_id = models.IntegerField(db_column='itemID', primary_key=True)
-    item_name = models.CharField(db_column='itemName', max_length=200)
+    item_name = models.CharField(
+        db_column='itemName',
+        unique=True,
+        max_length=200)
     group = models.ForeignKey(
         'InvGroup',
         on_delete=models.DO_NOTHING,
@@ -1669,7 +1671,6 @@ class InvUniqueName(models.Model):
         managed = False
         verbose_name = 'Inv Unique Names'
         db_table = 'sde_invUniqueNames'
-        unique_together = (('item_name', 'item_name'),)
 
 
 class InvVolume(models.Model):
@@ -2088,8 +2089,7 @@ class MapSolarSystem(models.Model):
     hub = models.NullBooleanField()
     international = models.NullBooleanField()
     regional = models.NullBooleanField()
-    # Field renamed because of name conflict.
-    constellation_0 = models.NullBooleanField(db_column='constellation')
+    constellation = models.NullBooleanField()
     security = models.FloatField(blank=True, null=True)
     faction = models.ForeignKey(
         'ChrFaction',
